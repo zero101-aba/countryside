@@ -1,0 +1,41 @@
+{
+  "name": "tianyuan-town",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "田园小镇 —— 你发指令、村民自己干活的像素种田游戏原型（村民 AI / 自主意愿 / AI 对话 / 阶段解锁 / 服装店）",
+  "scripts": {
+    "dev": "node tools/serve.mjs",
+    "start": "node tools/serve.mjs",
+    "build": "node tools/build.mjs",
+    "test": "node tools/test-core.mjs"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^23.11.1"
+  },
+  "license": "MIT",
+  "keywords": [
+    "pixel-art",
+    "canvas",
+    "game",
+    "farming",
+    "simulation",
+    "javascript",
+    "es-modules",
+    "mobile-game",
+    "pwa",
+    "ai-agents",
+    "llm",
+    "deepseek",
+    "stardew-like",
+    "no-dependencies"
+  ],
+  "homepage": "https://github.com/<your-name>/tianyuan-town#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/<your-name>/tianyuan-town.git"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

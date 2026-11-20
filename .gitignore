@@ -1,0 +1,24 @@
+# 依赖
+node_modules/
+
+# 构建产物（npm run build 可重新生成）
+dist/
+release/
+
+# 本地/临时文件
+.workbuddy/
+dsh-write-probe.txt
+*.log
+.DS_Store
+Thumbs.db
+
+# 编辑器
+.vscode/
+.idea/
+
+# Godot
+godot/.godot/
+godot/android/
+godot/export_presets.cfg
+godot/*.import
+godot/export/

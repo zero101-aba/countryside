@@ -1,0 +1,27 @@
+﻿import puppeteer from 'puppeteer-core';
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const browser = await puppeteer.launch({ executablePath: EDGE, headless: 'new', args: ['--no-sandbox','--disable-gpu','--lang=zh-CN'] });
+const page = await browser.newPage();
+await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+const errs=[]; page.on('pageerror',e=>errs.push(e.message)); page.on('console',m=>{ if(m.type()==='error') errs.push(m.text()); });
+await page.goto('http://localhost:5180/', { waitUntil:'networkidle0' });
+await page.evaluate(()=>{ localStorage.clear(); localStorage.setItem('farm_tutorial_done','1'); document.getElementById('tutorial').classList.remove('show'); });
+await page.reload({waitUntil:'networkidle0'});
+await new Promise(r=>setTimeout(r,800));
+const shot = async (name,fn)=>{ if(fn){ await page.evaluate(fn); await new Promise(r=>setTimeout(r,700)); } await page.screenshot({path:`shots/${name}.png`}); };
+await shot('270-no-dirt', ()=>{ const g=window.__game; g.setSpeed(0); g.sim.absHours=10; g.follow=null; g.renderer.snapTo(11,6); });
+await shot('271-rain', ()=>{ const g=window.__game; g.sim.weather='rain'; g.renderer.snapTo(15,12); });
+await shot('272-storm', ()=>{ const g=window.__game; g.sim.weather='storm'; });
+const day = await page.evaluate(()=>{
+  const g=window.__game,s=g.sim;
+  s.weather='sunny';
+  s.stats.earned += 120; s.stats.harvested += 3; s.questsDone += 1;
+  s.absHours = s.day*24 + 23.5;
+  g.skipNight();
+  return { day:s.day, hour:s.hour, summary:s.daySummary, card:document.getElementById('day-card').textContent, cardShown:document.getElementById('day-card').classList.contains('show') };
+});
+await new Promise(r=>setTimeout(r,400));
+await page.screenshot({ path:'shots/273-day-summary.png' });
+const speed = await page.evaluate(()=>{ const g=window.__game; g.setSpeed(8); return { speed:g.speed, has8: !!document.querySelector('[data-speed="8"]') }; });
+console.log(JSON.stringify({day,speed,errs}, null, 1));
+await browser.close();

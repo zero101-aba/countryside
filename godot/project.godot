@@ -1,0 +1,28 @@
+; Engine configuration file.
+; 田园小镇 · Godot 版
+
+config_version=5
+
+[application]
+
+config/name="田园小镇"
+config/description="你发指令，小伟和小杨自己干活的像素种田游戏（Godot 版）"
+run/main_scene="res://main.tscn"
+config/features=PackedStringArray("4.7")
+config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=960
+window/size/viewport_height=600
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+environment/defaults/default_clear_color=Color(0.16, 0.14, 0.12, 1)

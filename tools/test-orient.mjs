@@ -1,0 +1,14 @@
+﻿import puppeteer from 'puppeteer-core';
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const browser = await puppeteer.launch({ executablePath: EDGE, headless: 'new', args: ['--no-sandbox','--disable-gpu','--lang=zh-CN'] });
+const page = await browser.newPage();
+await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+const errs=[]; page.on('pageerror', e=>errs.push(e.message)); page.on('console', m=>{ if(m.type()==='error') errs.push(m.text()); });
+await page.goto('http://localhost:5180/', { waitUntil: 'networkidle0' });
+await page.evaluate(()=>{ localStorage.clear(); localStorage.setItem('farm_tutorial_done','1'); document.getElementById('tutorial').classList.remove('show'); });
+await new Promise(r=>setTimeout(r,500));
+await page.click('#btn-orient');
+await new Promise(r=>setTimeout(r,800));
+const toast = await page.evaluate(()=>({ text: document.getElementById('toast').textContent, fs: !!document.fullscreenElement, btn: !!document.querySelector('#btn-orient') }));
+console.log(JSON.stringify({toast, errs}));
+await browser.close();

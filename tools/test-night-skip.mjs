@@ -1,0 +1,31 @@
+﻿import puppeteer from 'puppeteer-core';
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const browser = await puppeteer.launch({ executablePath: EDGE, headless: 'new', args: ['--no-sandbox','--disable-gpu','--lang=zh-CN'] });
+const page = await browser.newPage();
+await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+const errs=[]; page.on('pageerror', e=>errs.push(e.message)); page.on('console', m=>{ if(m.type()==='error') errs.push(m.text()); });
+await page.goto('http://localhost:5180/', { waitUntil: 'networkidle0' });
+await page.evaluate(()=>{ localStorage.clear(); localStorage.setItem('farm_tutorial_done','1'); document.getElementById('tutorial').classList.remove('show'); });
+await new Promise(r=>setTimeout(r,800));
+const out = await page.evaluate(()=>{
+  const g=window.__game, s=g.sim;
+  g.setSpeed(0);
+  s.absHours = 23.5;
+  g.ui.refreshNow();
+  const btnNightVisible = !document.getElementById('btn-skip-night').classList.contains('hidden');
+  const before = { day:s.day, hour:+s.hour.toFixed(2) };
+  g.skipNight();
+  const after = { day:s.day, hour:+s.hour.toFixed(2), clock:s.clockText, sleeping:s.villagers.filter(v=>v.state==='sleeping').length, log:s.logs.slice(-1)[0]?.text };
+  // 自动跳过
+  s.autoSkipNight = true; s._lastAutoSkipDay = 0;
+  s.absHours = s.day*24 + 23.2;
+  s.autoSkipNightIfNeeded();
+  const auto = { day:s.day, hour:+s.hour.toFixed(2) };
+  s.absHours = s.day*24 + 12; g.ui.refreshNow();
+  const btnDayHidden = document.getElementById('btn-skip-night').classList.contains('hidden');
+  return { btnNightVisible, before, after, auto, btnDayHidden };
+});
+await new Promise(r=>setTimeout(r,300));
+await page.screenshot({ path: 'shots/250-night-skip.png' });
+console.log(JSON.stringify({out,errs},null,1));
+await browser.close();

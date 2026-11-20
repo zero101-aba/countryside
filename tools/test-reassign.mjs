@@ -1,0 +1,22 @@
+﻿import puppeteer from 'puppeteer-core';
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const browser = await puppeteer.launch({ executablePath: EDGE, headless: 'new', args: ['--no-sandbox','--disable-gpu','--lang=zh-CN'] });
+const page = await browser.newPage();
+await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+const errs=[]; page.on('pageerror',e=>errs.push(e.message));
+await page.goto('http://localhost:5180/', { waitUntil:'networkidle0' });
+await page.evaluate(()=>{ localStorage.clear(); localStorage.setItem('farm_tutorial_done','1'); document.getElementById('tutorial').classList.remove('show'); });
+await page.reload({waitUntil:'networkidle0'});
+await new Promise(r=>setTimeout(r,700));
+const out = await page.evaluate(()=>{
+  const g=window.__game, s=g.sim; g.setSpeed(0);
+  s.villagers.forEach(v=>{ if(v.task){v.task=null;v.path=null;v.state='auto';} v.queue=[]; });
+  s.world.plots.slice(0,3).forEach(p=>{ p.state='plowed'; p.crop='radish'; p.growth=0.2; p.wetUntil=0; });
+  g.runCommand('都去浇水');
+  const before={tasks:s.villagers.map(v=>({n:v.name,t:v.task&&v.task.type,q:v.queue.length}))};
+  g.runCommand('让小杨别浇了去钓鱼');
+  const after={tasks:s.villagers.map(v=>({n:v.name,t:v.task&&v.task.type,q:v.queue.length})), feed:[...document.querySelectorAll('#cmd-feed div')].slice(-3).map(d=>d.textContent)};
+  return {before,after};
+});
+console.log(JSON.stringify({out,errs},null,1));
+await browser.close();

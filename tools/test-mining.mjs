@@ -1,0 +1,21 @@
+﻿import puppeteer from 'puppeteer-core';
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const browser = await puppeteer.launch({ executablePath: EDGE, headless: 'new', args: ['--no-sandbox','--disable-gpu','--lang=zh-CN'] });
+const page = await browser.newPage();
+await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+const errs=[]; page.on('pageerror', e=>errs.push(e.message)); page.on('console', m=>{ if(m.type()==='error') errs.push(m.text()); });
+await page.goto('http://localhost:5180/', { waitUntil: 'networkidle0' });
+await page.evaluate(()=>{ localStorage.clear(); localStorage.setItem('farm_tutorial_done','1'); document.getElementById('tutorial').classList.remove('show'); });
+await new Promise(r=>setTimeout(r,700));
+const mine = await page.evaluate(()=>{
+  const g=window.__game, s=g.sim; g.setSpeed(0);
+  s.stats.harvested=10; s.checkRegionUnlocks();
+  const v=s.villagers.find(x=>x.id==='afu');
+  const rock=s.world.rocks.find(r=>r.ore && !r.mined);
+  v.x=rock.x-1.5; v.y=rock.y+0.5; v.path=null; v.task=null; v.state='auto'; v.queue=[];
+  g.runCommand('让阿福挖一块矿');
+  for(let i=0;i<1200 && !(s.inventory.stone||s.inventory.ore);i++) s.tick(1/60);
+  return { rock:{x:rock.x,y:rock.y,ore:rock.ore,mined:rock.mined}, inv:{...s.inventory}, task:v.task?.type, feed:[...document.querySelectorAll('#cmd-feed div')].slice(-4).map(d=>d.textContent) };
+});
+console.log(JSON.stringify({mine, errs}, null, 1));
+await browser.close();

@@ -1,0 +1,26 @@
+﻿import puppeteer from 'puppeteer-core';
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const browser = await puppeteer.launch({ executablePath: EDGE, headless: 'new', args: ['--no-sandbox','--disable-gpu','--lang=zh-CN'] });
+const page = await browser.newPage();
+await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+await page.goto('http://localhost:5180/', { waitUntil: 'networkidle0' });
+await page.evaluate(()=>{ localStorage.clear(); localStorage.setItem('farm_tutorial_done','1'); document.getElementById('tutorial').classList.remove('show'); });
+await new Promise(r=>setTimeout(r,500));
+const info = await page.evaluate(() => {
+  const g = window.__game, s = g.sim;
+  const [afu, xm, tz, cx] = s.villagers;
+  afu.emo.cur.joy = 84; afu.emo.cur.anger = 3; afu.emo.cur.sadness = 4; afu.emo.cur.fatigue = 8; afu._updateMood();
+  xm.emo.cur.joy = 40; xm.emo.cur.anxiety = 76; xm.emo.cur.sadness = 20; xm._updateMood();
+  tz.emo.cur.anger = 82; tz.emo.cur.joy = 18; tz._updateMood();
+  cx.emo.cur.sadness = 74; cx.emo.cur.joy = 22; cx._updateMood();
+  g.sim.selected = null;
+  g.follow = null;
+  g.renderer.snapTo(14, 13);
+  document.getElementById('sheet').classList.remove('open');
+  g.ui.refreshNow();
+  return s.villagers.map(v => [v.name, v.emotion.label, v.moodEmoji]);
+});
+await new Promise(r=>setTimeout(r,700));
+await page.screenshot({ path: 'shots/87-emotions.png' });
+console.log(JSON.stringify(info));
+await browser.close();

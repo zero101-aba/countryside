@@ -1,0 +1,15 @@
+﻿import puppeteer from 'puppeteer-core';
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const browser = await puppeteer.launch({ executablePath: EDGE, headless: 'new', args: ['--no-sandbox','--disable-gpu','--lang=zh-CN'] });
+const page = await browser.newPage();
+await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+const errs=[]; page.on('pageerror', e=>errs.push(e.message));
+await page.goto('http://localhost:5180/', { waitUntil: 'networkidle0' });
+await page.evaluate(()=>{ localStorage.clear(); localStorage.setItem('farm_tutorial_done','1'); document.getElementById('tutorial').classList.remove('show'); });
+await new Promise(r=>setTimeout(r,600));
+const before = await page.evaluate(()=>{ const s=window.__game.sim; const xw=s.villagers.find(v=>v.id==='xiaowei'); xw.emo.cur.joy=88; xw.emo.trust=77; xw.memory.talkCount=3; window.__game.save(); return {n:s.villagers.length, names:s.villagers.map(v=>v.name), house:!!s.world.buildingById('home_xiaowei')}; });
+await page.reload({ waitUntil: 'networkidle0' });
+await new Promise(r=>setTimeout(r,700));
+const after = await page.evaluate(()=>{ const s=window.__game.sim; const xw=s.villagers.find(v=>v.id==='xiaowei'); return {n:s.villagers.length, joy:Math.round(xw.emo.cur.joy), trust:Math.round(xw.emo.trust), talks:xw.memory.talkCount, house:!!s.world.buildingById('home_xiaowei'), cards:document.querySelectorAll('.vcard').length}; });
+console.log(JSON.stringify({before, after, errs}, null, 1));
+await browser.close();

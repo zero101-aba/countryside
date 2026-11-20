@@ -1,0 +1,20 @@
+﻿import puppeteer from 'puppeteer-core';
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const browser = await puppeteer.launch({ executablePath: EDGE, headless: 'new', args: ['--no-sandbox','--disable-gpu','--lang=zh-CN'] });
+const page = await browser.newPage();
+await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+const errs=[]; page.on('pageerror', e=>errs.push(e.message));
+await page.goto('http://localhost:5180/', { waitUntil: 'networkidle0' });
+await page.evaluate(()=>{ localStorage.clear(); localStorage.setItem('farm_tutorial_done','1'); document.getElementById('tutorial').classList.remove('show'); });
+await new Promise(r=>setTimeout(r,500));
+await page.evaluate(()=>{ const g=window.__game; g.selectVillager(g.sim.villagers[0]); g.setMode('plow'); g.renderer.focusOn(14,13); });
+await new Promise(r=>setTimeout(r,1400));
+const pt = await page.evaluate(()=>{ const g=window.__game; const s=g.renderer.worldToScreen(10.5*24, 13.5*24); const r=document.getElementById('game').getBoundingClientRect(); return {x:r.x+s.x,y:r.y+s.y,s,r:[r.x,r.y,r.width,r.height], cam:[g.renderer.cam.x,g.renderer.cam.y]}; });
+console.log('pt', JSON.stringify(pt));
+await page.mouse.click(pt.x, pt.y);
+await new Promise(r=>setTimeout(r,900));
+const st = await page.evaluate(()=>{ const g=window.__game; const v=g.sim.villagers[0]; return {mode:g.mode, task:v.task?.type, stage:v.task?.stage, follow:!!g.follow}; });
+console.log('after click', JSON.stringify(st), 'errs', errs);
+await page.screenshot({ path: 'tools/shots/72-after-click.png' });
+await browser.close();
+

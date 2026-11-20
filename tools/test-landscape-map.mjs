@@ -1,0 +1,15 @@
+﻿import puppeteer from 'puppeteer-core';
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const browser = await puppeteer.launch({ executablePath: EDGE, headless: 'new', args: ['--no-sandbox','--disable-gpu','--lang=zh-CN'] });
+const page = await browser.newPage();
+await page.setViewport({ width: 844, height: 390, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+const errs=[]; page.on('pageerror', e=>errs.push(e.message));
+await page.goto('http://localhost:5180/', { waitUntil: 'networkidle0' });
+await page.evaluate(()=>{ localStorage.clear(); localStorage.setItem('farm_tutorial_done','1'); document.getElementById('tutorial').classList.remove('show'); });
+await new Promise(r=>setTimeout(r,700));
+await page.evaluate(()=>window.__game.ui.openMap());
+await new Promise(r=>setTimeout(r,400));
+const layout = await page.evaluate(()=>{ const c=document.getElementById('map-card').getBoundingClientRect(); return { card:[Math.round(c.x),Math.round(c.y),Math.round(c.width),Math.round(c.height)], scroll:document.getElementById('map-card').scrollHeight, viewport:[innerWidth,innerHeight] }; });
+await page.screenshot({ path: 'shots/193-landscape-map.png' });
+console.log(JSON.stringify({layout, errs}));
+await browser.close();

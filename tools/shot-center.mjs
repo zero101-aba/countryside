@@ -1,0 +1,13 @@
+﻿import puppeteer from 'puppeteer-core';
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const browser = await puppeteer.launch({ executablePath: EDGE, headless: 'new', args: ['--no-sandbox','--disable-gpu','--lang=zh-CN'] });
+const page = await browser.newPage();
+await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+await page.goto('http://localhost:5180/', { waitUntil: 'networkidle0' });
+await page.evaluate(()=>{ localStorage.clear(); localStorage.setItem('farm_tutorial_done','1'); document.getElementById('tutorial').classList.remove('show'); });
+await new Promise(r=>setTimeout(r,600));
+await page.evaluate(()=>{ const g=window.__game; g.sim.absHours=10.5; g.sim.selected=null; g.follow=null; g.renderer.snapTo(24,12); });
+await new Promise(r=>setTimeout(r,700));
+await page.screenshot({ path: 'shots/101-village-center.png' });
+await browser.close();
+console.log('ok');

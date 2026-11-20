@@ -1,0 +1,15 @@
+﻿import puppeteer from 'puppeteer-core';
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const browser = await puppeteer.launch({ executablePath: EDGE, headless: 'new', args: ['--no-sandbox','--disable-gpu','--lang=zh-CN'] });
+const page = await browser.newPage();
+await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+const errs=[]; page.on('pageerror', e=>errs.push(e.message));
+await page.goto('http://localhost:5180/', { waitUntil: 'networkidle0' });
+await page.evaluate(()=>{ localStorage.clear(); localStorage.setItem('farm_tutorial_done','1'); document.getElementById('tutorial').classList.remove('show'); localStorage.setItem('fanmian_ai_v1', JSON.stringify({key:'sk-test-invalid',model:'deepseek-chat',auto:false,enabled:true})); });
+await page.reload({waitUntil:'networkidle0'});
+await new Promise(r=>setTimeout(r,700));
+const r = await page.evaluate(()=>window.__game.triggerAITalk());
+await new Promise(r=>setTimeout(r,1500));
+const out = await page.evaluate(()=>({toast:document.getElementById('toast').textContent, story:window.__game.sim.story.length, bond:window.__game.sim.bond}));
+console.log(JSON.stringify({result:r, out, errs}, null, 1));
+await browser.close();

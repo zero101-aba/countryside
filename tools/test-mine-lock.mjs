@@ -1,0 +1,20 @@
+﻿import puppeteer from 'puppeteer-core';
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const browser = await puppeteer.launch({ executablePath: EDGE, headless: 'new', args: ['--no-sandbox','--disable-gpu','--lang=zh-CN'] });
+const page = await browser.newPage();
+await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+const errs=[]; page.on('pageerror', e=>errs.push(e.message));
+await page.goto('http://localhost:5180/', { waitUntil: 'networkidle0' });
+await page.evaluate(()=>{ localStorage.clear(); localStorage.setItem('farm_tutorial_done','1'); document.getElementById('tutorial').classList.remove('show'); });
+await new Promise(r=>setTimeout(r,600));
+const out = await page.evaluate(()=>{
+  const g=window.__game,s=g.sim; g.setSpeed(0);
+  g.runCommand('去后山挖一块矿');
+  const locked=[...document.querySelectorAll('#cmd-feed div')].slice(-3).map(d=>d.textContent);
+  g.runCommand('挖一块矿');
+  const tasks=s.villagers.filter(v=>v.task).map(v=>`${v.name}:${v.task.type}@${v.task.tx},${v.task.ty}`);
+  const feed=[...document.querySelectorAll('#cmd-feed div')].slice(-4).map(d=>d.textContent);
+  return { locked, tasks, feed };
+});
+console.log(JSON.stringify({out, errs}, null, 1));
+await browser.close();

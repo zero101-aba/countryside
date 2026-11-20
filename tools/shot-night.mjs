@@ -1,0 +1,16 @@
+﻿import puppeteer from 'puppeteer-core';
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const browser = await puppeteer.launch({ executablePath: EDGE, headless: 'new', args: ['--no-sandbox','--disable-gpu','--lang=zh-CN'] });
+const page = await browser.newPage();
+await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+await page.goto('http://localhost:5180/', { waitUntil: 'networkidle0' });
+await page.evaluate(()=>{ localStorage.clear(); localStorage.setItem('farm_tutorial_done','1'); document.getElementById('tutorial').classList.remove('show'); });
+await new Promise(r=>setTimeout(r,700));
+await page.evaluate(()=>{ const g=window.__game; g.setSpeed(1); g.sim.absHours = 21.2; g.ui.refreshNow(); g.follow=null; g.renderer.snapTo(15,10); });
+await new Promise(r=>setTimeout(r,700));
+await page.screenshot({ path: 'shots/250-night-skip.png' });
+await page.evaluate(()=>{ const g=window.__game; g.ui.openShop('settings'); });
+await new Promise(r=>setTimeout(r,500));
+await page.screenshot({ path: 'shots/251-night-setting.png' });
+console.log('shots done');
+await browser.close();

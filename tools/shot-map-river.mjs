@@ -1,0 +1,18 @@
+﻿import puppeteer from 'puppeteer-core';
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const browser = await puppeteer.launch({ executablePath: EDGE, headless: 'new', args: ['--no-sandbox','--disable-gpu','--lang=zh-CN'] });
+const page = await browser.newPage();
+await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+const errs=[]; page.on('pageerror', e=>errs.push(e.message));
+await page.goto('http://localhost:5180/', { waitUntil: 'networkidle0' });
+await page.evaluate(()=>{ localStorage.clear(); localStorage.setItem('farm_tutorial_done','1'); document.getElementById('tutorial').classList.remove('show'); });
+await new Promise(r=>setTimeout(r,700));
+await page.evaluate(()=>window.__game.ui.openMap());
+await new Promise(r=>setTimeout(r,400));
+await page.screenshot({ path: 'shots/190-map.png' });
+await page.evaluate(()=>{ const g=window.__game,s=g.sim; s.absHours=24+8; s.checkRegionUnlocks(); g.fastTravel(s.regionById('river')); });
+await new Promise(r=>setTimeout(r,700));
+await page.screenshot({ path: 'shots/194-river.png' });
+const out = await page.evaluate(()=>{ const s=window.__game.sim; return { river:s.isRegionUnlocked('river'), current:s.currentRegion, hud:document.getElementById('hud-region').textContent, rocks:s.world.rockAt?1:0 }; });
+console.log(JSON.stringify({out, errs}));
+await browser.close();

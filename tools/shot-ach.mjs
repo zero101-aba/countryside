@@ -1,0 +1,20 @@
+﻿import puppeteer from 'puppeteer-core';
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const browser = await puppeteer.launch({ executablePath: EDGE, headless: 'new', args: ['--no-sandbox','--disable-gpu','--lang=zh-CN'] });
+const page = await browser.newPage();
+await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+const errs=[]; page.on('pageerror',e=>errs.push(e.message));
+await page.goto('http://localhost:5180/', { waitUntil:'networkidle0' });
+await page.evaluate(()=>{ localStorage.clear(); localStorage.setItem('farm_tutorial_done','1'); document.getElementById('tutorial').classList.remove('show'); });
+await page.reload({waitUntil:'networkidle0'});
+await new Promise(r=>setTimeout(r,700));
+await page.evaluate(()=>{
+  const g=window.__game, s=g.sim; g.setSpeed(0);
+  s.stats.harvested=12; s.stats.planted=30; s.stats.mined=21; s.stats.collected=21; s.stats.fish=20; s.stats.questsDone=10; s.money=1200; s.stats.earned=1200;
+  s.checkAchievements();
+  g.ui.openStats();
+});
+await new Promise(r=>setTimeout(r,600));
+await page.screenshot({ path:'shots/290-achievements.png' });
+console.log(JSON.stringify({errs}));
+await browser.close();

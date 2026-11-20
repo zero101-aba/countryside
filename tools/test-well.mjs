@@ -1,0 +1,22 @@
+﻿import puppeteer from 'puppeteer-core';
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const browser = await puppeteer.launch({ executablePath: EDGE, headless: 'new', args: ['--no-sandbox','--disable-gpu','--lang=zh-CN'] });
+const page = await browser.newPage();
+await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+const errs=[]; page.on('pageerror', e=>errs.push(e.message)); page.on('console', m=>{ if(m.type()==='error') errs.push(m.text()); });
+await page.goto('http://localhost:5180/', { waitUntil: 'networkidle0' });
+await page.evaluate(()=>{ localStorage.clear(); localStorage.setItem('farm_tutorial_done','1'); document.getElementById('tutorial').classList.remove('show'); });
+await new Promise(r=>setTimeout(r,800));
+const out = await page.evaluate(()=>{
+  const g=window.__game,s=g.sim; g.setSpeed(0); g.sim.absHours=10;
+  const well=s.world.buildingById('well');
+  const overlapPlots=s.world.plots.filter(p=>p.x>=well.x&&p.x<well.x+well.w&&p.y>=well.y&&p.y<well.y+well.h).map(p=>[p.x,p.y]);
+  const overlapPath=[];
+  for(let y=well.y;y<well.y+well.h;y++)for(let x=well.x;x<well.x+well.w;x++) if(s.world.tileAt(x,y)===2) overlapPath.push([x,y]);
+  return { well:{x:well.x,y:well.y}, overlapPlots, overlapPath };
+});
+await page.evaluate(()=>{ const g=window.__game; g.follow=null; g.renderer.snapTo(18,17); });
+await new Promise(r=>setTimeout(r,600));
+await page.screenshot({ path: 'shots/220-well.png' });
+console.log(JSON.stringify({out, errs}, null, 1));
+await browser.close();
